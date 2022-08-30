@@ -4,6 +4,7 @@ import com.example.jetbrains.businesslayer.Code;
 import com.example.jetbrains.businesslayer.CodeService;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,12 +23,16 @@ public class CodeController {
         this.codeService = codeService;
     }
 
-    @GetMapping("/{n}")
-    public String getNthSnippet(@PathVariable Long n, Model model) {
-        Optional<Code> opt = codeService.findById(n);
-        model.addAttribute("snippet", opt.get());
-        return "code_snippet";
-    }
+    // @GetMapping("/{uuid}")
+    // public String getNthSnippet(@PathVariable UUID uuid, Model model) {
+    //     Optional<Code> opt = codeService.findByUuid(uuid);
+    //     Code tempSnippet = opt.get();
+    //     tempSnippet.setViews(tempSnippet.getViews() - 1);
+    //     codeService.updateSnippet(tempSnippet);
+
+    //     model.addAttribute("snippet", tempSnippet);
+    //     return "code_snippet";
+    // }
 
     @GetMapping("/new")
     public String createSnippet() {

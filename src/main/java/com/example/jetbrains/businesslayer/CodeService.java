@@ -5,6 +5,7 @@ import com.example.jetbrains.persistence.CodeRepository;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.Optional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,27 +24,56 @@ public class CodeService {
         this.codeRepository = codeRepository;
     }
 
-    public Optional<Code> findById(Long id) {
-        Optional<Code> opt = codeRepository.findById(id);
+    public Optional<Code> findByUuid(UUID uuid) {
+        Optional<Code> opt = codeRepository.findByUuid(uuid);
         return opt;
     }
 
-    public long saveSnippet(Code snippet) {
-        String date = LocalDateTime.now().format(formatter);
+    public UUID saveSnippet(Code snippet) {
+        LocalDateTime now = LocalDateTime.now();
+        snippet.setEndTime(now.plusSeconds(snippet.getTime()));
+        
+        String date = now.format(formatter);
         snippet.setDate(date);
+
+        UUID uuid = UUID.randomUUID();
+        snippet.setUuid(uuid);
+
+        if (snippet.getTime() <= 0) {
+            snippet.setTimeRestricted(false);
+        }
+        else {
+            snippet.setTimeRestricted(true);
+        }
+
+        if (snippet.getViews() <= 0) {
+            snippet.setViewsRestricted(false);
+        } 
+        else {
+            snippet.setViewsRestricted(true);
+        }
+
+        Code savedSnippet = codeRepository.save(snippet);
+        return savedSnippet.getUuid();
+    }
+
+    public void updateSnippet(Code snippet) {
         codeRepository.save(snippet);
-        return codeRepository.count();
     }
 
     public List<Code> getLatestSnippets() {
         List<Code> latestTen = new ArrayList<>();
-        Long len = codeRepository.count();
-        Long end = len <= 10 ? 1 : len - 9;
+        Long last = codeRepository.count();
+        Long ten = 10L;
 
-        for (Long i = len ; i >= end; i--) {
-            Optional<Code> opt = codeRepository.findById(i);
+        while(ten != 0 && last != 0) {
+            Optional<Code> opt = codeRepository.findById(last);
             Code snippet = opt.get();
-            latestTen.add(snippet);
+            if (!snippet.isTimeRestricted() && !snippet.isViewsRestricted()) {
+                latestTen.add(snippet);
+                ten--;
+            }
+            last--;
         }
 
         return latestTen;

@@ -9,6 +9,11 @@
 </head>
 <body>
     <span id="load_date"><code>${snippet.date}</code></span>
+    <#if snippet.views gt 0>
+        <span id="views_restriction">
+            <u>${snippet.views}</u> more views allowed
+        </span>
+    </#if>
     <pre id="code_snippet"><code>${snippet.code}</code></pre>
 </body>
 </html>
