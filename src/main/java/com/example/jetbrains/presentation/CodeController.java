@@ -5,6 +5,8 @@ import com.example.jetbrains.businesslayer.CodeService;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,16 +25,67 @@ public class CodeController {
         this.codeService = codeService;
     }
 
-    // @GetMapping("/{uuid}")
-    // public String getNthSnippet(@PathVariable UUID uuid, Model model) {
-    //     Optional<Code> opt = codeService.findByUuid(uuid);
-    //     Code tempSnippet = opt.get();
-    //     tempSnippet.setViews(tempSnippet.getViews() - 1);
-    //     codeService.updateSnippet(tempSnippet);
+    @GetMapping("/{uuidStr}")
+    public Object getNthSnippet(@PathVariable String uuidStr, Model model) {
+        model.addAttribute("found", false);
+        model.addAttribute("time_hidden", false);
+        model.addAttribute("views_hidden", false);
 
-    //     model.addAttribute("snippet", tempSnippet);
-    //     return "code_snippet";
-    // }
+        UUID uuid;
+
+        try {
+            uuid = UUID.fromString(uuidStr);
+        } 
+        catch (Exception e) {
+            return "code_snippet";
+        }
+
+        Optional<Code> opt = codeService.findByUuid(uuid);
+
+        if (opt.isPresent() && !opt.get().isDeleted()) {
+            Code snippet = opt.get();
+            
+            if (snippet.getTime() != 0) {
+                LocalDateTime now = LocalDateTime.now();
+                long seconds = now.until(
+                    snippet.getEndTime(), 
+                    ChronoUnit.SECONDS
+                );
+                if (seconds > 0) {
+                    snippet.setTime(seconds);
+                    codeService.updateSnippet(snippet);
+                }
+                else {
+                    snippet.setDeleted(true);
+                    codeService.updateSnippet(snippet);
+                    return "code_snippet";
+                }
+            }
+            else {
+                model.addAttribute("time_hidden", true);
+            }
+
+            if (snippet.getViews() != 0) {
+                snippet.setViews(snippet.getViews() - 1);
+                if (snippet.getViews() > 0) {
+                    codeService.updateSnippet(snippet);
+                }
+                else {
+                    snippet.setDeleted(true);
+                    codeService.updateSnippet(snippet);
+                }
+            }
+            else {
+                model.addAttribute("views_hidden", true);
+            }
+
+            model.addAttribute("found", true);
+            model.addAttribute("snippet", snippet);
+            return "code_snippet";
+        } 
+
+        return "code_snippet";
+    }
 
     @GetMapping("/new")
     public String createSnippet() {

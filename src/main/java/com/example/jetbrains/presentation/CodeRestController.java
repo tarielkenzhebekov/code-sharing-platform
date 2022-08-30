@@ -52,10 +52,10 @@ public class CodeRestController {
 
         Optional<Code> opt = codeService.findByUuid(uuid);
 
-        if (opt.isPresent()) {
+        if (opt.isPresent() && !opt.get().isDeleted()) {
             Code snippet = opt.get();
-
-            if (snippet.isTimeRestricted()) {
+            
+            if (snippet.getTime() != 0) {
                 LocalDateTime now = LocalDateTime.now();
                 long seconds = now.until(
                     snippet.getEndTime(), 
@@ -66,17 +66,21 @@ public class CodeRestController {
                     codeService.updateSnippet(snippet);
                 }
                 else {
+                    snippet.setDeleted(true);
+                    codeService.updateSnippet(snippet);
                     return notFound;
                 }
             }
 
-            if (snippet.isViewsRestricted()) {
-                if (snippet.getViews() > 0) {
-                    snippet.setViews(snippet.getViews() - 1);
+            if (snippet.getViews() != 0) {
+                long remainingViews = snippet.getViews() - 1;
+                if (remainingViews > 0) {
+                    snippet.setViews(remainingViews)
                     codeService.updateSnippet(snippet);
                 }
                 else {
-                    return notFound;
+                    snippet.setDeleted(true);
+                    codeService.updateSnippet(snippet);
                 }
             }
 

@@ -11,7 +11,7 @@
 <body>
     <#list latest_snippets as snippet>
         <div>
-            <span id="load_date">${snippet.date}</span>
+            <span id="load_date" style="color:green">${snippet.date}</span>
             <pre id="code_snippet"><code>${snippet.code}</code></pre>
         </div>
     </#list>

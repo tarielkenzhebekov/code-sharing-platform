@@ -39,19 +39,13 @@ public class CodeService {
         UUID uuid = UUID.randomUUID();
         snippet.setUuid(uuid);
 
-        if (snippet.getTime() <= 0) {
-            snippet.setTimeRestricted(false);
-        }
-        else {
-            snippet.setTimeRestricted(true);
+        if (snippet.getTime() < 0) {
+            snippet.setTime(0);
         }
 
-        if (snippet.getViews() <= 0) {
-            snippet.setViewsRestricted(false);
+        if (snippet.getViews() < 0) {
+            snippet.setViews(0);
         } 
-        else {
-            snippet.setViewsRestricted(true);
-        }
 
         Code savedSnippet = codeRepository.save(snippet);
         return savedSnippet.getUuid();
@@ -61,17 +55,20 @@ public class CodeService {
         codeRepository.save(snippet);
     }
 
+    // public void deleteById(Long id) {
+    //     codeRepository.deleteById(id);
+    // }
+
     public List<Code> getLatestSnippets() {
         List<Code> latestTen = new ArrayList<>();
         Long last = codeRepository.count();
-        Long ten = 10L;
 
-        while(ten != 0 && last != 0) {
+        while(latestTen.size() != 10 && last != 0) {
             Optional<Code> opt = codeRepository.findById(last);
-            Code snippet = opt.get();
-            if (!snippet.isTimeRestricted() && !snippet.isViewsRestricted()) {
-                latestTen.add(snippet);
-                ten--;
+            if (!opt.get().isDeleted()
+                    && opt.get().getTime() == 0
+                    && opt.get().getViews() == 0) {
+                    latestTen.add(opt.get());
             }
             last--;
         }

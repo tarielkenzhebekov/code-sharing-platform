@@ -82,12 +82,8 @@ public class Code {
     private LocalDateTime endTime;
 
     @JsonIgnore
-    @Column(name = "time_restriction")
-    private boolean timeRestricted;
-
-    @JsonIgnore
-    @Column(name = "views_restriction")
-    private boolean viewsRestricted;
+    @Column(name = "deleted")
+    private boolean deleted;
 
     public Code(
             UUID uuid, 
@@ -95,14 +91,11 @@ public class Code {
             String date, 
             long time,
             long views,
-            LocalDateTime endTime,
-            boolean restricted) {
+            LocalDateTime endTime) {
         this.uuid = uuid;
         this.code = code;
         this.date = date;
         this.views = views;
         this.endTime = endTime;
-        this.timeRestricted = timeRestricted;
-        this.viewsRestricted = viewsRestricted;
     }
 }
