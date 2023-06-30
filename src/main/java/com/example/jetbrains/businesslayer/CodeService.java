@@ -1,6 +1,5 @@
 package com.example.jetbrains.businesslayer;
 
-import com.example.jetbrains.businesslayer.Code;
 import com.example.jetbrains.persistence.CodeRepository;
 
 import java.util.List;
@@ -15,8 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class CodeService {
-    private final DateTimeFormatter formatter = 
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final CodeRepository codeRepository;
 
     @Autowired
@@ -25,14 +24,13 @@ public class CodeService {
     }
 
     public Optional<Code> findByUuid(UUID uuid) {
-        Optional<Code> opt = codeRepository.findByUuid(uuid);
-        return opt;
+        return codeRepository.findByUuid(uuid);
     }
 
     public UUID saveSnippet(Code snippet) {
         LocalDateTime now = LocalDateTime.now();
         snippet.setEndTime(now.plusSeconds(snippet.getTime()));
-        
+
         String date = now.format(formatter);
         snippet.setDate(date);
 
@@ -45,7 +43,7 @@ public class CodeService {
 
         if (snippet.getViews() < 0) {
             snippet.setViews(0);
-        } 
+        }
 
         Code savedSnippet = codeRepository.save(snippet);
         return savedSnippet.getUuid();
@@ -55,20 +53,16 @@ public class CodeService {
         codeRepository.save(snippet);
     }
 
-    // public void deleteById(Long id) {
-    //     codeRepository.deleteById(id);
-    // }
-
     public List<Code> getLatestSnippets() {
         List<Code> latestTen = new ArrayList<>();
-        Long last = codeRepository.count();
+        long last = codeRepository.count();
 
         while(latestTen.size() != 10 && last != 0) {
             Optional<Code> opt = codeRepository.findById(last);
             if (!opt.get().isDeleted()
                     && opt.get().getTime() == 0
                     && opt.get().getViews() == 0) {
-                    latestTen.add(opt.get());
+                latestTen.add(opt.get());
             }
             last--;
         }

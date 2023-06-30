@@ -12,9 +12,6 @@ import javax.persistence.SequenceGenerator;
 
 import static javax.persistence.GenerationType.SEQUENCE;
 
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -28,46 +25,45 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Entity
 @Table(name = "codes")
 @JsonPropertyOrder({
-    "code",
-    "date",
-    "time",
-    "views"
+        "code",
+        "date",
+        "time",
+        "views"
 })
 public class Code {
     @Id
     @SequenceGenerator(
-        name = "code_sequence",
-        sequenceName = "code_sequence",
-        allocationSize = 1
+            name = "code_sequence",
+            sequenceName = "code_sequence",
+            allocationSize = 1
     )
     @GeneratedValue(
-        strategy = SEQUENCE,
-        generator = "code_sequence"
+            strategy = SEQUENCE,
+            generator = "code_sequence"
     )
     @Column(
-        name = "id",
-        updatable = false
+            name = "id",
+            updatable = false
     )
     @JsonIgnore
     private Long id;
-    
+
     @Column(
-        name = "uuid",
-        columnDefinition = "BINARY(16)",
-        updatable = false
+            name = "uuid",
+            updatable = false
     )
     @JsonIgnore
     private UUID uuid;
 
     @Column(
-        name = "code",
-        columnDefinition = "TEXT"
+            name = "code",
+            columnDefinition = "TEXT"
     )
     private String code;
 
     @Column(
-        name = "date",
-        length = 19
+            name = "date",
+            length = 19
     )
     private String date;
 
@@ -86,16 +82,19 @@ public class Code {
     private boolean deleted;
 
     public Code(
-            UUID uuid, 
-            String code, 
-            String date, 
+            UUID uuid,
+            String code,
+            String date,
             long time,
             long views,
-            LocalDateTime endTime) {
+            LocalDateTime endTime,
+            boolean deleted) {
         this.uuid = uuid;
         this.code = code;
         this.date = date;
         this.views = views;
+        this.time = time;
         this.endTime = endTime;
+        this.deleted = deleted;
     }
 }

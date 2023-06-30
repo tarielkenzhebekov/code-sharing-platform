@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,27 +41,26 @@ public class CodeRestController {
     }
 
     @GetMapping("/{uuidStr}")
-    public Object getNthSnippet(@PathVariable String uuidStr) {
-        final String notFound = "404 Not Found";
+    public ResponseEntity<Code> getNthSnippet(@PathVariable String uuidStr) {
         UUID uuid;
 
         try {
             uuid = UUID.fromString(uuidStr);
-        } 
+        }
         catch (Exception e) {
-            return notFound;
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         Optional<Code> opt = codeService.findByUuid(uuid);
 
         if (opt.isPresent() && !opt.get().isDeleted()) {
             Code snippet = opt.get();
-            
+
             if (snippet.getTime() != 0) {
                 LocalDateTime now = LocalDateTime.now();
                 long seconds = now.until(
-                    snippet.getEndTime(), 
-                    ChronoUnit.SECONDS
+                        snippet.getEndTime(),
+                        ChronoUnit.SECONDS
                 );
                 if (seconds > 0) {
                     snippet.setTime(seconds);
@@ -68,26 +69,22 @@ public class CodeRestController {
                 else {
                     snippet.setDeleted(true);
                     codeService.updateSnippet(snippet);
-                    return notFound;
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
             }
 
             if (snippet.getViews() != 0) {
-                long remainingViews = snippet.getViews() - 1;
-                if (remainingViews > 0) {
-                    snippet.setViews(remainingViews)
-                    codeService.updateSnippet(snippet);
-                }
-                else {
+                snippet.setViews(snippet.getViews() - 1);
+                if (snippet.getViews() == 0) {
                     snippet.setDeleted(true);
-                    codeService.updateSnippet(snippet);
                 }
+                codeService.updateSnippet(snippet);
             }
 
-            return snippet;
-        } 
+            return new ResponseEntity<>(snippet, HttpStatus.OK);
+        }
 
-        return notFound;
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/latest")

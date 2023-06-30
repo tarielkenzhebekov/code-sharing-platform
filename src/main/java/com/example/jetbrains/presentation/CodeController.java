@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @Controller
 @RequestMapping(path = "/code")
@@ -27,7 +29,6 @@ public class CodeController {
 
     @GetMapping("/{uuidStr}")
     public Object getNthSnippet(@PathVariable String uuidStr, Model model) {
-        model.addAttribute("found", false);
         model.addAttribute("time_hidden", false);
         model.addAttribute("views_hidden", false);
 
@@ -35,21 +36,21 @@ public class CodeController {
 
         try {
             uuid = UUID.fromString(uuidStr);
-        } 
+        }
         catch (Exception e) {
-            return "code_snippet";
+            return new ResponseEntity<>("404 Not Found", HttpStatus.NOT_FOUND);
         }
 
         Optional<Code> opt = codeService.findByUuid(uuid);
 
         if (opt.isPresent() && !opt.get().isDeleted()) {
             Code snippet = opt.get();
-            
+
             if (snippet.getTime() != 0) {
                 LocalDateTime now = LocalDateTime.now();
                 long seconds = now.until(
-                    snippet.getEndTime(), 
-                    ChronoUnit.SECONDS
+                        snippet.getEndTime(),
+                        ChronoUnit.SECONDS
                 );
                 if (seconds > 0) {
                     snippet.setTime(seconds);
@@ -58,7 +59,7 @@ public class CodeController {
                 else {
                     snippet.setDeleted(true);
                     codeService.updateSnippet(snippet);
-                    return "code_snippet";
+                    return new ResponseEntity<>("404 Not Found", HttpStatus.NOT_FOUND);
                 }
             }
             else {
@@ -67,24 +68,20 @@ public class CodeController {
 
             if (snippet.getViews() != 0) {
                 snippet.setViews(snippet.getViews() - 1);
-                if (snippet.getViews() > 0) {
-                    codeService.updateSnippet(snippet);
-                }
-                else {
+                if (snippet.getViews() == 0) {
                     snippet.setDeleted(true);
-                    codeService.updateSnippet(snippet);
                 }
+                codeService.updateSnippet(snippet);
             }
             else {
                 model.addAttribute("views_hidden", true);
             }
 
-            model.addAttribute("found", true);
             model.addAttribute("snippet", snippet);
             return "code_snippet";
-        } 
+        }
 
-        return "code_snippet";
+        return new ResponseEntity<>("404 Not Found", HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/new")
